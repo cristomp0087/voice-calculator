@@ -2,124 +2,90 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>OnSite Voice Calculator</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="app">
-    <header class="app-header">
-      <h1>OnSite Voice Calculator</h1>
-      <p class="subtitle">Fale a conta. Veja o resultado.</p>
-    </header>
+    
+    <div class="top-section">
+      <header class="app-header">
+        <h1>OnSite Calculator</h1>
+        <p class="subtitle">Beta v1.2</p>
+      </header>
 
-    <!-- RESULTADO ATUAL -->
-    <section class="display-card">
-      <div class="label">Resultado</div>
-      <div id="current-result" class="result-value">0</div>
-    </section>
+      <section class="display-card result-card-expanded">
+        <div class="label">RESULT</div>
+        <div id="current-result" class="result-value">0</div>
+        <div id="calcMemoryVertical" class="vertical-memory"></div>
+      </section>
 
-    <!-- MEMÓRIA = ÚNICA CAIXA DE EXPRESSÃO -->
-    <section class="memory-card">
-      <div class="memory-header">
-        <span>Memória de cálculo</span>
-        <button id="clearMemoryBtn" class="ghost-btn">Limpar</button>
-      </div>
-
-      <div class="input-wrapper memory-input-wrapper">
-        <input
-          id="expression"
-          class="expression-input"
-          placeholder='Ex.: 28 - 7   ou   2 1/2" + 3 3/8"'
-        />
-        <button
-          id="toggleKeypadBtn"
-          class="input-icon-btn"
-          type="button"
-          aria-label="Abrir teclado rápido"
-        >
-          ⌨️
-        </button>
-      </div>
-    </section>
-
-    <!-- CONTROLES -->
-    <section class="controls">
-      <div class="voice-wrapper">
-        <button
-          id="voiceBtn"
-          class="voice-main-btn"
-          type="button"
-          aria-label="Falar"
-        >
-          🎙️
-        </button>
-      </div>
-
-      <button id="calcBtn" class="calc-main-btn" type="button">
-        Calcular
-      </button>
-
-      <button id="aiBtn" class="btn-secondary">
-  IA Interpretar
-</button>
-
-      <p class="hint">
-        Prefere não usar voz? Monte a operação na memória e clique
-        <strong>Calcular</strong>. O botão <strong>Falar</strong> é opcional e
-        pode não funcionar em todos os navegadores.
-      </p>
-    </section>
-
-    <!-- TECLADO RÁPIDO (aparece só quando clicar no ícone) -->
-    <section class="keypad-panel" aria-label="Teclado rápido">
-      <div class="keypad-header">
-        <span>Teclado rápido</span>
-        <span class="keypad-subtitle">Toque para montar a expressão</span>
-      </div>
-
-      <!-- NÚMEROS + OPERAÇÕES EM COLUNA -->
-      <div class="keypad-main-row">
-        <div class="keypad-grid keypad-numbers">
-          <button class="keypad-btn">7</button>
-          <button class="keypad-btn">8</button>
-          <button class="keypad-btn">9</button>
-
-          <button class="keypad-btn">4</button>
-          <button class="keypad-btn">5</button>
-          <button class="keypad-btn">6</button>
-
-          <button class="keypad-btn">1</button>
-          <button class="keypad-btn">2</button>
-          <button class="keypad-btn">3</button>
-
-          <button class="keypad-btn">0</button>
-          <button class="keypad-btn">00</button>
-          <button class="keypad-btn">.</button>
+      <section class="display-card input-group-card">
+        <div class="memory-header">
+          <span class="label">TRANSCRIPT</span>
+          <button id="clearMemoryBtn" class="ghost-btn">Clear</button>
         </div>
 
-        <div class="keypad-ops-col">
-          <button class="keypad-btn keypad-op">+</button>
-          <button class="keypad-btn keypad-op">-</button>
-          <button class="keypad-btn keypad-op">×</button>
-          <button class="keypad-btn keypad-op">÷</button>
+        <div class="input-wrapper">
+          <input
+            id="expression"
+            class="expression-input"
+            placeholder='Tap or Hold Mic...'
+            autocomplete="off"
+          />
+          <div class="input-actions">
+            <button id="backspaceBtn" class="icon-action-btn" aria-label="Apagar">⌫</button>
+          </div>
         </div>
+
+        <div class="voice-container-internal">
+          <button
+            id="voiceBtn"
+            class="voice-main-btn"
+            type="button"
+            aria-label="Segure para falar"
+          >
+            🎙️
+          </button>
+          <p class="hint">Hold to Speak</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="keypad-panel" aria-label="Teclado numérico">
+      
+      <div class="keypad-unified">
+        <button class="keypad-btn">7</button>
+        <button class="keypad-btn">8</button>
+        <button class="keypad-btn">9</button>
+        <button class="keypad-btn keypad-op">÷</button>
+
+        <button class="keypad-btn">4</button>
+        <button class="keypad-btn">5</button>
+        <button class="keypad-btn">6</button>
+        <button class="keypad-btn keypad-op">×</button>
+
+        <button class="keypad-btn">1</button>
+        <button class="keypad-btn">2</button>
+        <button class="keypad-btn">3</button>
+        <button class="keypad-btn keypad-op">-</button>
+
+        <button class="keypad-btn">0</button>
+        <button class="keypad-btn">.</button>
+        
+        <button id="calcBtn" class="keypad-btn btn-equal">=</button>
+        
+        <button class="keypad-btn keypad-op">+</button>
       </div>
 
       <div class="keypad-divider"></div>
 
-      <!-- BLOCO DE POLEGADAS -->
-      <div class="keypad-header keypad-header-small">
-        <span>Medidas</span>
-        <span class="keypad-subtitle">
-          Pés, polegadas e frações usadas em obra
-        </span>
+      <div class="keypad-header-small">
+        <span>MEASURES</span>
       </div>
-
-      <div class="keypad-grid keypad-inches">
-        <!-- pés (usando símbolo de minuto/pé) -->
+      <div class="keypad-inches">
         <button class="keypad-btn keypad-inch keypad-feet">′</button>
-        
-        <!-- frações comuns -->
         <button class="keypad-btn keypad-inch">1/8"</button>
         <button class="keypad-btn keypad-inch">1/4"</button>
         <button class="keypad-btn keypad-inch">3/8"</button>
@@ -128,18 +94,12 @@
         <button class="keypad-btn keypad-inch">3/4"</button>
         <button class="keypad-btn keypad-inch">7/8"</button>
       </div>
+      
+      <button id="aiBtn" style="display:none;"></button>
 
-      <!-- CONTROLES DO TECLADO -->
-      <div class="keypad-footer">
-        <button class="keypad-btn ghost-btn keypad-clear">Limpar campo</button>
-      </div>
-
-      <!-- BOTÃO IGUAL, DE FORA A FORA -->
-      <button class="keypad-btn keypad-equal">=</button>
     </section>
   </main>
 
-  <!-- JS do app -->
   <script src="app.js"></script>
 </body>
 </html>

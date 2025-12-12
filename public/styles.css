@@ -1,396 +1,181 @@
 /* ===========================
    RESET BÁSICO
    =========================== */
-
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* ===========================
-   LAYOUT GERAL
-   =========================== */
-
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  background: #0f172a;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #020617;
   color: #e5e7eb;
-  min-height: 100vh;
+  height: 100vh;
+  margin: 0;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 24px;
+  overflow: hidden;
 }
 
 .app {
   width: 100%;
-  max-width: 520px;
-  background: rgba(15, 23, 42, 0.95);
-  border-radius: 18px;
-  padding: 24px 20px 20px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-/* ===========================
-   CABEÇALHO
-   =========================== */
-
-.app-header {
-  margin-bottom: 18px;
-}
-
-.app-header h1 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: #f9fafb;
-}
-
-.subtitle {
-  font-size: 0.85rem;
-  color: #9ca3af;
-  margin-top: 4px;
-}
-
-/* ===========================
-   CARTÃO DE RESULTADO
-   =========================== */
-
-.display-card {
-  background: radial-gradient(circle at top left, #1e293b, #020617);
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-}
-
-.display-card .label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #9ca3af;
-  margin-bottom: 6px;
-}
-
-.result-value {
-  font-variant-numeric: tabular-nums;
-  font-size: 2.4rem;
-  font-weight: 600;
-  color: #fbbf24;
-  word-wrap: break-word;
-}
-
-/* ===========================
-   MEMÓRIA
-   =========================== */
-
-.memory-card {
-  background: #020617;
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 18px;
-  border: 1px solid rgba(30, 64, 175, 0.6);
-}
-
-.memory-header {
+  max-width: 500px;
+  height: 100%;
+  background: #0f172a;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.memory-header span {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: #9ca3af;
-}
-
-.ghost-btn {
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: transparent;
-  color: #e5e7eb;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.ghost-btn:hover {
-  background: rgba(148, 163, 184, 0.12);
-  border-color: rgba(248, 250, 252, 0.8);
-}
-
-/* ===========================
-   INPUT/MEMÓRIA
-   =========================== */
-
-.input-wrapper {
+  flex-direction: column;
   position: relative;
 }
 
-.expression-input {
-  width: 100%;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: rgba(15, 23, 42, 0.9);
-  color: #e5e7eb;
-  padding: 10px 40px 10px 14px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease,
-    background 0.15s ease;
-}
-
-.expression-input::placeholder {
-  color: #6b7280;
-}
-
-.expression-input:focus {
-  border-color: #fbbf24;
-  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.4);
-  background: #020617;
-}
-
-.input-icon-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 1.15rem;
-  padding: 4px;
-}
-
-.input-icon-btn:hover {
-  color: #fbbf24;
-}
-
-/* ===========================
-   CONTROLES PRINCIPAIS
-   =========================== */
-
-.controls {
+/* ÁREA SUPERIOR */
+.top-section {
+  padding: 12px 16px 0; /* Padding levemente reduzido */
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  gap: 10px; /* Espaço entre os cartões */
 }
 
-.voice-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+.app-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: baseline;
+  margin-bottom: 4px;
 }
-
-.voice-main-btn {
-  width: 64px;
-  height: 64px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, #f97316, #fbbf24);
-  color: #111827;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8rem;
-  cursor: pointer;
-  box-shadow: 0 10px 24px rgba(251, 191, 36, 0.5);
-  transition: transform 0.08s ease, box-shadow 0.12s ease;
-}
-
-.voice-main-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(251, 191, 36, 0.6);
-}
-
-.voice-main-btn.listening {
-  background: linear-gradient(135deg, #22c55e, #a3e635);
-  box-shadow: 0 12px 26px rgba(34, 197, 94, 0.6);
-}
-
-.calc-main-btn {
-  width: 100%;
-  border-radius: 999px;
-  padding: 12px 0;
-  font-size: 1rem;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
-  color: #f9fafb;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.45);
-  transition: transform 0.08s ease, box-shadow 0.12s ease, opacity 0.1s ease;
-}
-
-.calc-main-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.55);
-}
-
-.hint {
-  font-size: 0.75rem;
-  color: #6b7280;
-  line-height: 1.4;
-  text-align: left;
-  width: 100%;
-}
+.app-header h1 { font-size: 1rem; font-weight: 700; color: #f8fafc; letter-spacing: 0.5px; }
+.subtitle { font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
 
 /* ===========================
-   TECLADO RÁPIDO
+   CARTÕES (RESULTADO & INPUT)
    =========================== */
 
-.keypad-panel {
-  margin-top: 18px;
-  padding: 14px 14px 16px;
+.display-card {
+  background: radial-gradient(circle at top right, #1e293b, #020617);
   border-radius: 16px;
-  background: #020617;
-  border: 1px solid rgba(30, 64, 175, 0.7);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
-  display: none;
-}
-
-.keypad-panel.open {
-  display: block;
-}
-
-.keypad-header {
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: 10px;
+  /* MUDANÇA: Altura fixa mínima igual para os dois */
+  min-height: 145px; 
+  justify-content: space-between;
 }
 
-.keypad-header span:first-child {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: #9ca3af;
+/* CARD 1: RESULTADO */
+.label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: #64748b; margin-bottom: 4px; }
+.result-value { font-family: monospace; font-size: 2.4rem; font-weight: 700; color: #fbbf24; word-wrap: break-word; line-height: 1.1; }
+
+.vertical-memory { 
+  margin-top: auto; /* Empurra para baixo */
+  font-family: monospace; 
+  font-size: 0.85rem; 
+  color: #94a3b8; 
+  text-align: right; 
+  border-top: 1px dashed #334155; 
+  padding-top: 6px; 
+  max-height: 50px; /* Limite de altura */
+  overflow-y: auto; /* Scroll se a conta for gigante */
 }
 
-.keypad-header-small {
-  margin-top: 6px;
-}
-
-.keypad-subtitle {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-/* layout principal: números + ops em coluna */
-
-.keypad-main-row {
-  display: flex;
+/* CARD 2: INPUT GROUP */
+.input-group-card {
+  justify-content: flex-start; /* Alinhamento topo */
   gap: 8px;
-  margin-bottom: 10px;
 }
 
-.keypad-grid {
-  display: grid;
-  gap: 6px;
-}
+.memory-header { display: flex; align-items: center; justify-content: space-between; }
+.ghost-btn { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; border: 1px solid #475569; background: transparent; color: #cbd5e1; cursor: pointer; text-transform: uppercase; }
 
-.keypad-numbers {
-  flex: 1;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.expression-input {
+  width: 100%; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f1f5f9; padding: 10px 40px 10px 10px; font-size: 1rem; outline: none; transition: border 0.2s;
 }
+.expression-input:focus { border-color: #3b82f6; }
+.input-actions { position: absolute; right: 6px; display: flex; }
+.icon-action-btn { border: none; background: transparent; color: #94a3b8; cursor: pointer; font-size: 1.2rem; padding: 4px; }
 
-.keypad-ops-col {
-  width: 72px;
+/* VOZ */
+.voice-container-internal {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin-top: auto; /* Centraliza verticalmente no espaço que sobra */
+  margin-bottom: auto;
+}
+.voice-main-btn {
+  width: 60px; height: 60px; border-radius: 50%; border: 3px solid #334155;
+  background: linear-gradient(145deg, #f59e0b, #d97706);
+  color: #fff; font-size: 1.6rem; cursor: pointer;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+}
+.voice-main-btn:active { transform: scale(0.95); }
+.voice-main-btn.listening {
+  background: #ef4444 !important; border-color: #fff; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+}
+.hint { font-size: 0.65rem; color: #64748b; margin-top: 4px; }
+
+/* ===========================
+   TECLADO FIXO
+   =========================== */
+.keypad-panel {
+  flex: 1; 
+  background: #1e293b;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 16px 12px 12px; /* Padding reduzido para caber melhor */
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+  margin-top: 10px;
 }
 
-/* botões */
+/* GRID UNIFICADO */
+.keypad-unified {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 6px;
+  flex: 2; 
+}
 
 .keypad-btn {
-  border-radius: 999px;
-  border: 1px solid rgba(55, 65, 81, 0.9);
-  background: #020617;
-  color: #e5e7eb;
-  padding: 6px 0;
-  font-size: 0.8rem;
-  cursor: pointer;
-  text-align: center;
-  transition: background 0.12s ease, transform 0.08s ease,
-    box-shadow 0.12s ease, border-color 0.12s ease;
+  border-radius: 10px; border: none; background: #334155; color: #f1f5f9; 
+  font-size: 1.3rem; cursor: pointer; 
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s;
+  height: 100%; min-height: 48px;
+}
+.keypad-btn:active { background: #475569; }
+
+/* Destaque para Operações */
+.keypad-op { background: #475569; font-weight: bold; color: #93c5fd; }
+
+/* Destaque para Igual */
+.btn-equal {
+  background: #2563eb; color: #fff; font-weight: 700; font-size: 1.5rem;
+}
+.btn-equal:active { background: #1d4ed8; }
+
+.keypad-divider { height: 1px; background: #334155; margin: 2px 0; }
+.keypad-header-small { font-size: 0.6rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; text-align: center; }
+
+/* GRID FRAÇÕES */
+.keypad-inches { 
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 6px; 
+  flex: 1; 
+}
+.keypad-inch { 
+  font-size: 0.8rem; background: #0f172a; border: 1px solid #334155; 
+  border-radius: 8px; color: #e2e8f0; min-height: 40px;
 }
 
-.keypad-btn:hover {
-  background: #111827;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.8);
-}
-
-.keypad-op {
-  background: #111827;
-}
-
-.keypad-op:hover {
-  background: #1f2937;
-}
-
-.keypad-inch {
-  font-variant-numeric: tabular-nums;
-}
-
-/* bloco de polegadas */
-
-.keypad-divider {
-  border-top: 1px dashed rgba(55, 65, 81, 0.8);
-  margin: 6px 0 8px;
-}
-
-.keypad-inches {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-bottom: 8px;
-}
-
-/* footer do teclado */
-
-.keypad-footer {
-  display: flex;
-  gap: 8px;
-}
-
-.keypad-footer .keypad-clear {
-  flex: 1;
-}
-
-/* botão "=" grandão */
-
-.keypad-equal {
-  margin-top: 10px;
-  width: 100%;
-  padding: 10px 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #f97316, #facc15);
-  color: #111827;
-  box-shadow: 0 8px 18px rgba(251, 191, 36, 0.5);
-}
-
-/* ===========================
-   RESPONSIVO
-   =========================== */
-
-@media (max-width: 480px) {
-  .app {
-    padding: 18px 14px 16px;
-    border-radius: 16px;
-  }
-
-  .result-value {
-    font-size: 2rem;
-  }
+/* Responsivo para telas MUITO pequenas */
+@media (max-height: 650px) {
+  .display-card { min-height: 120px; padding: 10px; }
+  .result-value { font-size: 1.8rem; }
+  .voice-main-btn { width: 50px; height: 50px; font-size: 1.4rem; }
+  .keypad-btn { font-size: 1.1rem; min-height: 40px; }
 }

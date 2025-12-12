@@ -1,7 +1,7 @@
 // server.js
 // ======================================
-// OnSite Voice Calculator – backend
-// Normal + polegadas + IA /interpret
+// OnSite Voice Calculator – Backend
+// Cérebro: IA Tradutora de "Obrês" para Matemática
 // ======================================
 
 require("dotenv").config();
@@ -10,56 +10,29 @@ const cors = require("cors");
 const math = require("mathjs");
 const OpenAI = require("openai");
 
-// --- Cliente OpenAI (USADO NA ROTA /interpret) ---
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 const app = express();
-const PORT = 3001;
+// Usa porta do ambiente ou 3001
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 
-function log(...args) {
-  console.log(">>", ...args);
-}
-
 /* ======================================
-   1) CALCULADORA NORMAL (/calculate)
-   ====================================== */
-
-app.post("/calculate", (req, res) => {
-  const { expression } = req.body || {};
-
-  if (!expression || typeof expression !== "string") {
-    return res.status(400).json({ error: "Expression inválida" });
-  }
-
-  try {
-    const result = math.evaluate(expression);
-    return res.json({ result });
-  } catch (err) {
-    console.error("Erro em /calculate:", err.message);
-    return res.status(400).json({ error: "Erro ao avaliar a expressão" });
-  }
-});
-
-/* ======================================
-   2) FUNÇÕES AUXILIARES – POLEGADAS
+   FUNÇÕES AUXILIARES (MATEMÁTICA PURA)
    ====================================== */
 
 function parseInchString(str) {
   if (!str || typeof str !== "string") return 0;
 
-  let s = str.trim();
+  // Limpeza extra: troca vírgula por ponto (caso a IA mande 5,5) e remove : (horas)
+  let s = str.replace(/,/g, ".").replace(/:/g, ".").trim();
 
-  // tira aspas finais "
-  if (s.endsWith('"')) {
-    s = s.slice(0, -1).trim();
-  }
+  if (s.endsWith('"')) s = s.slice(0, -1).trim();
 
-  // sinal
   let sign = 1;
   if (s.startsWith("-")) {
     sign = -1;
@@ -67,11 +40,9 @@ function parseInchString(str) {
   }
 
   let feet = 0;
-  // pés: 8' 3 1/2
   if (s.includes("'")) {
     const partsFeet = s.split("'");
-    const feetPart = partsFeet[0].trim();
-    feet = feetPart ? parseInt(feetPart, 10) || 0 : 0;
+    feet = parseInt(partsFeet[0].trim(), 10) || 0;
     s = (partsFeet[1] || "").trim();
   }
 
@@ -80,17 +51,25 @@ function parseInchString(str) {
 
   if (s.length > 0) {
     const tokens = s.split(/\s+/).filter(Boolean);
-
-    if (tokens.length === 1) {
-      // só "3" ou só "5/8"
-      if (tokens[0].includes("/")) {
-        const [num, den] = tokens[0].split("/").map(Number);
-        if (den && !isNaN(num)) frac = num / den;
+    
+    // Tratamento de segurança para números grudados que escaparam da IA
+    if (tokens.length === 1 && tokens[0].includes("/")) {
+      // Ex: 103/8 -> tenta ver se é 10 3/8
+      const matchGlue = tokens[0].match(/^(\d+)(\d+\/\d+)$/);
+      if (matchGlue) {
+          inchesInt = parseInt(matchGlue[1], 10);
+          const [num, den] = matchGlue[2].split("/").map(Number);
+          frac = num / den;
       } else {
-        inchesInt = parseInt(tokens[0], 10) || 0;
+          // Fração normal
+          const [num, den] = tokens[0].split("/").map(Number);
+          if (den && !isNaN(num)) frac = num / den;
       }
-    } else if (tokens.length >= 2) {
-      // "3 5/8"
+    } 
+    else if (tokens.length === 1) {
+       inchesInt = parseFloat(tokens[0]) || 0;
+    }
+    else if (tokens.length >= 2) {
       inchesInt = parseInt(tokens[0], 10) || 0;
       const fracToken = tokens[1];
       if (fracToken.includes("/")) {
@@ -100,173 +79,173 @@ function parseInchString(str) {
     }
   }
 
-  const totalInches = sign * (feet * 12 + inchesInt + frac);
-  return totalInches;
+  return sign * (feet * 12 + inchesInt + frac);
 }
 
-// formata resultado em pés + polegadas + fração (até 1/16")
 function formatInches(inches) {
   if (!isFinite(inches)) return "Erro";
-
-  let sign = "";
-  let x = inches;
-  if (x < 0) {
-    sign = "-";
-    x = Math.abs(x);
-  }
+  
+  let sign = inches < 0 ? "-" : "";
+  let x = Math.abs(inches);
 
   let feet = Math.floor(x / 12);
   x -= feet * 12;
 
   let wholeInches = Math.floor(x);
   let fraction = x - wholeInches;
+  
+  // Precisão: 1/16
+  let num = Math.round(fraction * 16);
+  let denom = 16;
 
-  const denomBase = 16;
-  let num = Math.round(fraction * denomBase);
-
-  if (num === denomBase) {
-    wholeInches += 1;
+  if (num === 16) {
+    wholeInches++;
     num = 0;
   }
   if (wholeInches === 12) {
-    feet += 1;
+    feet++;
     wholeInches = 0;
   }
 
-  // simplificar fração
-  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
-  let denom = denomBase;
   if (num > 0) {
-    const g = gcd(num, denom);
-    num = num / g;
-    denom = denom / g;
+    const gcd = (a, b) => b ? gcd(b, a % b) : a;
+    const common = gcd(num, 16);
+    num /= common;
+    denom /= common;
   }
 
   const parts = [];
   if (feet > 0) parts.push(`${feet}'`);
-  if (wholeInches > 0 || (feet === 0 && num === 0)) {
-    parts.push(String(wholeInches));
-  }
-  if (num > 0) {
-    parts.push(`${num}/${denom}`);
-  }
+  if (wholeInches > 0 || (feet === 0 && num === 0)) parts.push(`${wholeInches}`);
+  if (num > 0) parts.push(`${num}/${denom}`);
 
-  let result = parts.join(" ");
-  if (!result) result = "0";
-
-  return sign + result + '"';
+  return sign + parts.join(" ") + '"';
 }
 
 /* ======================================
-   3) CALCULADORA DE POLEGADAS (/inches)
+   ROTAS
    ====================================== */
+
+app.post("/calculate", (req, res) => {
+  const { expression } = req.body || {};
+  if (!expression) return res.status(400).json({ error: "Vazio" });
+
+  try {
+    const result = math.evaluate(expression);
+    return res.json({ result });
+  } catch (err) {
+    return res.status(400).json({ error: "Erro Math" });
+  }
+});
 
 app.post("/inches", (req, res) => {
   const { a, b, op } = req.body || {};
-  log("POST /inches", { a, b, op });
+  if (!a || !b || !op) return res.status(400).json({ error: "Incompleto" });
 
-  if (!a || !b || !op) {
-    return res.status(400).json({ error: "Parâmetros inválidos para /inches" });
-  }
+  const valA = parseInchString(a);
+  const valB = parseInchString(b);
+  let resNum = 0;
 
-  const left = parseInchString(a);
-  const right = parseInchString(b);
+  if (op === "+") resNum = valA + valB;
+  else if (op === "-") resNum = valA - valB;
+  else if (op === "*") resNum = valA * valB;
+  else if (op === "/") resNum = valB !== 0 ? valA / valB : 0;
 
-  if (!["+", "-", "*", "/"].includes(op)) {
-    return res.status(400).json({ error: "Operador inválido" });
-  }
-
-  let resultNumber;
-  try {
-    switch (op) {
-      case "+":
-        resultNumber = left + right;
-        break;
-      case "-":
-        resultNumber = left - right;
-        break;
-      case "*":
-        resultNumber = left * right;
-        break;
-      case "/":
-        if (right === 0) {
-          return res.status(400).json({ error: "Divisão por zero" });
-        }
-        resultNumber = left / right;
-        break;
-    }
-  } catch (err) {
-    console.error("Erro em /inches:", err.message);
-    return res.status(400).json({ error: "Erro ao calcular polegadas" });
-  }
-
-  const formatted = formatInches(resultNumber);
-  return res.json({ result: formatted, numeric: resultNumber });
+  return res.json({ result: formatInches(resNum) });
 });
 
-// -----------------------------------------
-// ROTA /interpret – usa IA pra entender texto/voz
-// -----------------------------------------
+/* ======================================
+   CÉREBRO DA IA (O ARQUIVO PODEROSO)
+   ====================================== */
 app.post("/interpret", async (req, res) => {
   const { text } = req.body || {};
-
-  if (!text || !text.trim()) {
-    return res.status(400).json({ error: "Texto vazio para interpretar." });
-  }
+  if (!text) return res.status(400).json({ error: "Texto vazio" });
 
   try {
-    const response = await openai.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content:
-            "Você é um parser de comandos de calculadora para carpintaria e uso diário. " +
-            "Recebe frases em português ou inglês e deve transformar em uma instrução de cálculo. " +
-            "\n\nTIPOS DE SAÍDA:\n" +
-            "1) mode = \"normal\"  -> problemas de números comuns (litros, dinheiro, itens, etc.). " +
-            "   - Preencha SEMPRE o campo 'expression' com uma expressão usando apenas números, " +
-            "     operadores +, -, *, / e parênteses quando necessário. " +
-            "   - Exemplo: 'tenho 30 litros e gasto 15, quanto sobra?' -> expression: '30 - 15'. " +
-            "   - Exemplo: '3 vezes 4 mais 2' -> expression: '3 * 4 + 2'. " +
-            "   - Campos a, b, op devem ser null nesse modo.\n\n" +
-            "2) mode = \"inches\" -> problemas claramente de medidas em pés/polegadas e frações, " +
-            "   como 96 1/8, 3 3/8, 8' 2 1/2\" etc. " +
-            "   - Preencha os campos 'a', 'b' e 'op' com UMA operação entre duas medidas " +
-            "     (ou uma medida e um número como fator). " +
-            "   - Exemplo: 'somar 96 e um oitavo com 3 e três oitavos' -> a: '96 1/8', b: '3 3/8', op: '+'. " +
-            "   - Exemplo: 'dobrar 8 pés e um quarto' -> a: '8 1/4', b: '2', op: '*'. " +
-            "   - No modo inches, 'expression' deve ser null.\n\n" +
-            "IMPORTANTE:\n" +
-            "- Sempre responda APENAS com um JSON válido, sem texto extra.\n" +
-            "- 'mode' é sempre 'normal' ou 'inches'.\n" +
-            "- Se o problema for uma historinha (caminhão, litros, dinheiro, etc.), mas não fala de pés/polegadas, " +
-            "  use mode='normal' e monte uma expressão numérica equivalente.\n"
+          content: `
+VOCÊ É UM TRADUTOR RIGOROSO DE LINGUAGEM DE OBRA PARA MATEMÁTICA.
+Sua missão é limpar a sujeira do reconhecimento de voz e entregar dados numéricos limpos.
+
+FORMATO DE RESPOSTA (JSON OBRIGATÓRIO):
+{
+  "mode": "normal" | "inches",
+  "a": string | null,
+  "b": string | null,
+  "op": "+" | "-" | "*" | "/" | null,
+  "expression": string | null,
+  "explanation": string
+}
+
+--- REGRAS BLINDADAS (LEIA COM ATENÇÃO) ---
+
+1. PROIBIDO PALAVRAS NA SAÍDA NUMÉRICA:
+   - Jamais retorne "dez", "cinco", "meia", "pé".
+   - Converta TUDO para dígitos: "dez" -> "10", "um quarto" -> "1/4".
+   - Input: "cinco e meio" -> Output: "5 1/2" (NÃO "5 e meio").
+
+2. VOCABULÁRIO DE OBRA (TRADUÇÃO):
+   - "Fit", "Fite", "Foot", "Feet", "Pé", "Pés" -> Símbolo: '
+   - "Incha", "Inche", "Inch", "Inches", "Polegada", "Pol" -> Ignorar palavra, manter apenas o número.
+   - "Meia", "Meio" -> "1/2"
+   - "Quarto" -> "1/4"
+   - "Oitavo", "Oitavos" -> "/8" (Ex: "três oitavos" -> "3/8")
+   - "Dezesseis avos" -> "/16"
+   - "Traço", "Linha" -> "/8" (Gíria comum: "duas linhas" -> "2/8" ou "1/4")
+
+3. REGRA ANTI-COLA (103/8):
+   - O reconhecimento de voz junta números inteiros com frações. VOCÊ DEVE SEPARAR.
+   - Se ouvir: "cento e três oitavos" ou receber "103/8" -> Interprete como "10 3/8".
+   - Se ouvir: "vinte um meio" ou receber "201/2" -> Interprete como "20 1/2".
+   - Regra prática: Se o numerador for maior que o denominador e parecer estranho, separe o último dígito ou os dois últimos.
+
+4. MATEMÁTICA BÁSICA (NORMAL):
+   - Se não houver menção a medidas (pé/pol/fração), use "mode": "normal".
+   - Retorne "expression" com ESPAÇOS entre operadores.
+   - Ex: "dez mais dez" -> "10 + 10".
+   - Ex: "cem dividido por dois" -> "100 / 2".
+
+--- CENÁRIOS DE TREINAMENTO (FEW-SHOT EXAMPLES) ---
+
+Input: "Dez e três oitavos mais cinco"
+Output: { "mode": "inches", "a": "10 3/8", "op": "+", "b": "5", "expression": null }
+
+Input: "Três pé e meio menos um e um quarto"
+Output: { "mode": "inches", "a": "3' 1/2", "op": "-", "b": "1 1/4", "expression": null }
+
+Input: "Cinco fit e duas linha mais dez incha"
+Output: { "mode": "inches", "a": "5' 2/8", "op": "+", "b": "10", "expression": null }
+
+Input: "103/8 mais 5" (Erro comum de voz)
+Output: { "mode": "inches", "a": "10 3/8", "op": "+", "b": "5", "expression": null }
+
+Input: "vinte mais trinta"
+Output: { "mode": "normal", "expression": "20 + 30", "a": null, "b": null, "op": null }
+
+Input: "duas polegadas e meia vezes quatro"
+Output: { "mode": "inches", "a": "2 1/2", "op": "*", "b": "4", "expression": null }
+          `.trim(),
         },
-        {
-          role: "user",
-          content: text
-        }
-      ]
+        { role: "user", content: text },
+      ],
+      temperature: 0, // Temperatura zero para ser o mais exato possível
     });
 
-    const jsonText = response.choices[0].message.content;
-    const parsed = JSON.parse(jsonText);
-
-    console.log("IA (/interpret) ->", parsed);
+    const parsed = JSON.parse(completion.choices[0].message.content);
+    console.log("IA Input:", text, "Output:", parsed);
     return res.json(parsed);
+
   } catch (err) {
-    console.error("Erro em /interpret:", err?.message || err);
-    return res
-      .status(500)
-      .json({ error: "Falha ao interpretar comando de voz." });
+    console.error("Erro IA:", err);
+    return res.status(500).json({ error: "Falha ao interpretar." });
   }
 });
-/* ======================================
-   5) START
-   ====================================== */
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
