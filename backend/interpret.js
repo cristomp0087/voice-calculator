@@ -5,15 +5,23 @@ function setCors(res) {
 }
 
 function readJson(req) {
+  // Vercel pode entregar objeto ou string
   if (req.body && typeof req.body === "object") return req.body;
   try { return JSON.parse(req.body || "{}"); } catch { return {}; }
 }
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   setCors(res);
 
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  // (Opcional) chave simples do app
+  const appKey = process.env.ONSITE_APP_KEY;
+  if (appKey) {
+    const sent = req.headers["x-onsite-key"];
+    if (!sent || sent !== appKey) return res.status(401).json({ error: "Unauthorized" });
+  }
 
   const { text } = readJson(req);
   const input = String(text || "").trim();
@@ -42,12 +50,13 @@ Retorne UM destes formatos:
 Regras:
 - Use operadores apenas: + - * /
 - Corrija coisas como "10 3/8" (não "103/8")
-- Se não tiver certeza: {"mode":"normal","expression":""}
+- Se não tiver certeza, devolva: {"mode":"normal","expression":""}
 `.trim();
 
     const payload = {
       model,
       temperature: 0,
+      // força JSON limpo quando disponível
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
@@ -81,4 +90,4 @@ Regras:
     console.error("Function crash:", err);
     return res.status(500).json({ error: "Server error" });
   }
-}
+};
