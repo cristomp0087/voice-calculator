@@ -1,5 +1,3 @@
-const OpenAI = require("openai");
-
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -7,8 +5,8 @@ function setCors(res) {
 }
 
 function readJson(req) {
-  // Vercel às vezes já entrega objeto; às vezes string
-  if (typeof req.body === "object" && req.body) return req.body;
+  // Vercel pode entregar objeto ou string
+  if (req.body && typeof req.body === "object") return req.body;
   try { return JSON.parse(req.body || "{}"); } catch { return {}; }
 }
 
@@ -18,7 +16,7 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  // (Opcional) chave simples do app (MVP)
+  // (Opcional) chave simples do app
   const appKey = process.env.ONSITE_APP_KEY;
   if (appKey) {
     const sent = req.headers["x-onsite-key"];
@@ -27,57 +25,69 @@ module.exports = async (req, res) => {
 
   const { text } = readJson(req);
   const input = String(text || "").trim();
-  if (!input) return res.status(400).json({ error: "Texto vazio" });
-  if (input.length > 220) return res.status(400).json({ error: "Texto longo demais" });
 
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
-  }
+  if (!input) return res.status(400).json({ error: "Missing text" });
+  if (input.length > 220) return res.status(400).json({ error: "Text too long" });
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
 
   try {
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      response_format: { type: "json_object" },
+    const system = `
+Você é um parser de calculadora.
+Converta a frase do usuário em JSON ESTRITO (sem markdown).
+
+Retorne UM destes formatos:
+
+1) Normal:
+{"mode":"normal","expression":"20 - 5"}
+
+2) Inches:
+{"mode":"inches","a":"3 1/4","op":"+","b":"5 3/8"}
+
+Regras:
+- Use operadores apenas: + - * /
+- Corrija coisas como "10 3/8" (não "103/8")
+- Se não tiver certeza, devolva: {"mode":"normal","expression":""}
+`.trim();
+
+    const payload = {
+      model,
       temperature: 0,
+      // força JSON limpo quando disponível
+      response_format: { type: "json_object" },
       messages: [
-        {
-          role: "system",
-          content: `
-VOCÊ É UM TRADUTOR RIGOROSO DE LINGUAGEM DE OBRA PARA MATEMÁTICA.
-Responda APENAS JSON válido no formato:
-
-{
-  "mode": "normal" | "inches",
-  "a": string | null,
-  "b": string | null,
-  "op": "+" | "-" | "*" | "/" | null,
-  "expression": string | null,
-  "explanation": string
-}
-
-REGRAS:
-- Proibido palavras nos números: converta tudo para dígitos.
-- "meia"->"1/2", "quarto"->"1/4", "oitavo"->"/8", "dezesseis avos"->"/16"
-- "pé/feet/fit" -> use "'"
-- Erro comum: "103/8" deve virar "10 3/8"
-- Se for normal: preencha expression com espaços entre operadores.
-          `.trim(),
-        },
+        { role: "system", content: system },
         { role: "user", content: input },
       ],
-      max_tokens: 180,
+      max_tokens: 160,
+    };
+
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
 
-    const raw = completion.choices?.[0]?.message?.content || "{}";
+    const data = await r.json().catch(() => ({}));
 
+    if (!r.ok) {
+      console.error("OpenAI error:", data);
+      return res.status(500).json({ error: "OpenAI error", detail: data?.error?.message || "" });
+    }
+
+    const content = data?.choices?.[0]?.message?.content || "{}";
     let parsed = {};
-    try { parsed = JSON.parse(raw); } catch { parsed = {}; }
+    try { parsed = JSON.parse(content); } catch { parsed = {}; }
 
     return res.status(200).json(parsed);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Falha ao interpretar." });
+    console.error("Function crash:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 };
