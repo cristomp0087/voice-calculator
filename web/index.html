@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OnSite Calculator</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand__title">OnSite Calculator</span>
+      <span class="brand__tag">BETA v1.2</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="card__label">RESULT</div>
+      <div id="current-result" class="result">0</div>
+      <div class="divider"></div>
+
+      <div class="row row--between">
+        <div class="card__label">TRANSCRIPT</div>
+        <button id="clearMemoryBtn" class="btn btn--ghost" type="button">CLEAR</button>
+      </div>
+
+      <div class="expr">
+        <input id="expression" class="expr__input" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder='Ex: 3 1/4 + 5 3/8  |  20 - 5' />
+        <button id="backspaceBtn" class="btn btn--icon" type="button" aria-label="Backspace">⌫</button>
+      </div>
+
+      <div class="row row--center">
+        <button id="voiceBtn" class="mic" type="button">
+          <span class="mic__icon">🎙️</span>
+          <span class="mic__text">Hold to Speak</span>
+        </button>
+      </div>
+
+      <div class="row row--center gap">
+        <button id="aiBtn" class="btn btn--accent" type="button">AI Interpret</button>
+        <button id="calcBtn" class="btn btn--primary" type="button">=</button>
+      </div>
+
+      <div id="calcMemoryVertical" class="memory"></div>
+    </section>
+
+    <section class="card">
+      <div class="keypad">
+        <button class="keypad-btn" type="button">7</button>
+        <button class="keypad-btn" type="button">8</button>
+        <button class="keypad-btn" type="button">9</button>
+        <button class="keypad-btn op" type="button">÷</button>
+
+        <button class="keypad-btn" type="button">4</button>
+        <button class="keypad-btn" type="button">5</button>
+        <button class="keypad-btn" type="button">6</button>
+        <button class="keypad-btn op" type="button">×</button>
+
+        <button class="keypad-btn" type="button">1</button>
+        <button class="keypad-btn" type="button">2</button>
+        <button class="keypad-btn" type="button">3</button>
+        <button class="keypad-btn op" type="button">-</button>
+
+        <button class="keypad-btn" type="button">0</button>
+        <button class="keypad-btn" type="button">.</button>
+        <button class="keypad-btn" id="calcBtnClone" type="button">=</button>
+        <button class="keypad-btn op" type="button">+</button>
+      </div>
+
+      <div class="measures">
+        <div class="measures__label">MEASURES</div>
+        <div class="measures__grid">
+          <button class="measure-btn keypad-btn" type="button">'</button>
+          <button class="measure-btn keypad-btn" type="button">1/8"</button>
+          <button class="measure-btn keypad-btn" type="button">1/4"</button>
+          <button class="measure-btn keypad-btn" type="button">3/8"</button>
+          <button class="measure-btn keypad-btn" type="button">1/2"</button>
+          <button class="measure-btn keypad-btn" type="button">5/8"</button>
+          <button class="measure-btn keypad-btn" type="button">3/4"</button>
+          <button class="measure-btn keypad-btn" type="button">7/8"</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Config: se backend estiver em outro domínio, preencha aqui.
+       Ex: window.ONSITE_API_BASE = "https://seu-backend.onrender.com"
+       Se estiver no mesmo domínio (Vercel full stack), deixa vazio. -->
+  <script>
+    window.ONSITE_API_BASE = "";
+  </script>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
